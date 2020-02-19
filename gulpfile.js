@@ -1,4 +1,4 @@
-var gulp = require('gulp'),
+const gulp = require('gulp'),
 	sass = require('gulp-sass'),
 	browserSync = require('browser-sync'),
 	concat = require('gulp-concat'),
@@ -16,8 +16,14 @@ var gulp = require('gulp'),
 	debug = require('gulp-debug'),
 	del = require('del');
 
+const bsReload = (done => {
+	browserSync.reload();
+	done();
+});
+	
+
 // Local Server
-gulp.task('browser-sync', function () {
+gulp.task('browser-sync', () => {
 	browserSync({
 		server: {
 			baseDir: 'src'
@@ -28,19 +34,15 @@ gulp.task('browser-sync', function () {
 	})
 });
 
-function bsReload(done) {
-	browserSync.reload();
-	done();
-};
 
 // Custom Styles
-gulp.task('styles', function () {
+gulp.task('styles', () => {
 	return gulp.src('src/sass/**/*.sass')
 		.pipe(sass({
 			outputStyle: 'expanded',
 			includePaths: [__dirname + '/node_modules']
 		}))
-		.on('error', notify.onError(function (err) {
+		.on('error', notify.onError((err) => {
 			return {
 				title: 'Sass',
 				message: err.message
@@ -63,7 +65,7 @@ gulp.task('styles', function () {
 });
 
 // Scripts
-gulp.task('scripts', function () {
+gulp.task('scripts', () => {
 	return gulp.src([
 			// 'node_modules/tiny-slider/dist/min/tiny-slider.js', // libs
 			'src/js/_*.js'
@@ -80,7 +82,7 @@ gulp.task('scripts', function () {
 });
 
 // Images
-gulp.task('images', async function () {
+gulp.task('images', async () => {
 	return gulp.src('src/img/_src/**/*.{png,jpg,jpeg,webp,raw,svg,gif}')
 		.pipe(imagemin([
 	    imagemin.gifsicle({interlaced: true}),
@@ -94,9 +96,7 @@ gulp.task('images', async function () {
 	    })
     ]))
 		.pipe(newer('src/img'))
-		.pipe(rename(function (path) {
-			path.extname = path.extname.replace('jpeg', 'jpg')
-		}))
+		.pipe(rename((path => path.extname = path.extname.replace('jpeg', 'jpg'))))
 		.pipe(clonesink) // start stream
 		.pipe(webp()) // convert images to webp and save a copy of the original format
 		.pipe(clonesink.tap()) // close stream
@@ -107,14 +107,14 @@ gulp.task('images', async function () {
 gulp.task('img', gulp.series('images', bsReload));
 
 // Clean IMG's
-gulp.task('cleanimg', function () {
+gulp.task('cleanimg', () => {
 	return del(['src/img/**/*', '!src/img/_src', '!src/img/favicon.*'], {
 		force: true
 	})
 });
 
 // Code & Reload
-gulp.task('code', function () {
+gulp.task('code', () => {
 	return gulp.src('src/**/*.html')
 		.pipe(browserSync.reload({
 			stream: true
@@ -122,7 +122,7 @@ gulp.task('code', function () {
 });
 
 // Build
-gulp.task('css:build', function () {
+gulp.task('css:build', () => {
 	return gulp.src('src/css/*.css')
 		.pipe(gulp.dest('dist/css'))
 		.pipe(debug({
@@ -130,7 +130,7 @@ gulp.task('css:build', function () {
 		}))
 });
 
-gulp.task('js:build', function () {
+gulp.task('js:build', () => {
 	return gulp.src('src/js/scripts.min.js')
 		.pipe(babel({
 			presets: ['@babel/env']
@@ -142,7 +142,7 @@ gulp.task('js:build', function () {
 		}))
 });
 
-gulp.task('html:build', function () {
+gulp.task('html:build', () => {
 	return gulp.src('src/*.{html,htaccess,access}')
 		.pipe(gulp.dest('dist/'))
 		.pipe(debug({
@@ -150,7 +150,7 @@ gulp.task('html:build', function () {
 		}))
 });
 
-gulp.task('img:build', function () {
+gulp.task('img:build', () => {
 	return gulp.src('src/img/*.{png,jpg,jpeg,webp,raw,ico,svg}')
 		.pipe(gulp.dest('dist/img/'))
 		.pipe(debug({
@@ -158,7 +158,7 @@ gulp.task('img:build', function () {
 		}))
 });
 
-gulp.task('fonts:build', function () {
+gulp.task('fonts:build', () => {
 	return gulp.src(['src/fonts/*', '!src/fonts/_src/**'])
 		.pipe(gulp.dest('dist/fonts/'))
 		.pipe(debug({
@@ -166,14 +166,14 @@ gulp.task('fonts:build', function () {
 		}))
 });
 
-gulp.task('clean:build', function () {
+gulp.task('clean:build', () => {
 	return del('dist')
 });
 
 gulp.task('build', gulp.series('clean:build', gulp.parallel('css:build', 'js:build', 'html:build', 'img:build', 'fonts:build')));
 
 // Watch
-gulp.task('watch', function () {
+gulp.task('watch', () => {
 	gulp.watch('src/sass/**/*.sass', gulp.parallel('styles'));
 	gulp.watch(['src/js/_custom.js', 'src/js/_libs.js'], gulp.parallel('scripts'));
 	gulp.watch('src/*.html', gulp.parallel('code'));
